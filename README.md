@@ -2,45 +2,58 @@
 
 [![UI tests](https://github.com/OfficialV1R0/qa-ui-automation-python/actions/workflows/pytest.yml/badge.svg)](https://github.com/OfficialV1R0/qa-ui-automation-python/actions/workflows/pytest.yml)
 
-Testovací aplikace: https://www.saucedemo.com
+Automatizované UI testy pro [Sauce Demo](https://www.saucedemo.com) v Pythonu (Playwright + pytest). CI (GitHub Actions) běží headless na Ubuntu, ukládá trace artefakty pro každý běh.
 
-Scénáře:
+## Scénáře
 - Login success
 - Login invalid (negativní)
+- Locked out user (negativní)
 - Add to cart
 - Remove from cart
 - Logout
-- Locked out user (negativní)
 
-## Lokální běh
-
+## Jak spustit lokálně
 ```powershell
+cd "C:\Users\oulic\Desktop\QA portfolio\qa-ui-automation-python"
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m playwright install
-pytest
-```
-
-Poznámka: Pokud se nepodaří aktivovat venv, povol si spouštění skriptů (jednorázově):
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+pytest -vv
 ```
 
 ## CI
-GitHub Actions workflow `.github/workflows/pytest.yml` spustí testy při každém pushi.
-Artefakty se nahrávají vždy (i při zeleném běhu) do artefaktu „ui-test-artifacts“.
+Workflow: `.github/workflows/pytest.yml`  
+Artifact: `ui-test-artifacts` (obsahuje trace.zip pro každý test)
 
-## Artifacts
-- Výstup lokálně: složka `test-results/` – pro každý test najdeš `trace.zip`.
-- Na GitHubu: v běhu Actions otevři „Artifacts“ → `ui-test-artifacts`.
-- Otevření trace:
-
+## Otevření Playwright trace
 ```powershell
-python -m playwright show-trace trace.zip
+# aktivace prostředí
+cd "C:\Users\oulic\Desktop\QA portfolio\qa-ui-automation-python"
+.\.venv\Scripts\Activate.ps1
+
+# otevření konkrétního trace
+python -m playwright show-trace ".\ui-test-artifacts\tests-test-saucedemo-py-test-add-to-cart-chromium\trace.zip"
 ```
 
+### Ukázka trace (Add to cart)
+![Trace – Add to cart](docs/trace-add-to-cart.png)
+
+Trace Viewer umožňuje:
+- Timeline kroků (fill, click, assertions)
+- Síťové požadavky (Network panel)
+- Console logy a DOM snapshoty
+- Analýzu času trvání jednotlivých akcí
+
 ## Co se naučeno
-- Základy Playwright sync API a práce se selektory
-- Organizace testů a fixture (login) v Pytestu
-- CI/CD: instalace Playwrightu na Linux runneru a nahrávání artefaktů
+- Playwright (Python) – psaní synchronních UI testů
+- Pytest fixtures pro reuse přihlašovacích kroků
+- GitHub Actions – headless běh a upload artefaktů
+- Analýza trace (timeline, network, assertion detail)
+
+## Další možnosti rozšíření (future work)
+- Paralelní běh v několika prohlížečích (`pytest -n auto` + matrix pro browsers)
+- HTML report (`pytest-html`)
+- Allure report pro detailní historii
+- Parametrizace testů (`pytest.mark.parametrize` pro varianty loginů)
+- Negativní testy pro neplatné položky nebo manipulaci s košíkem
