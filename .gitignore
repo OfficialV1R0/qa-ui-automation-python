@@ -3,3 +3,4 @@ __pycache__/
 .playwright/
 pytest_cache/
 test-results/
+ui-test-artifacts/

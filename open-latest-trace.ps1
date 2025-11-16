@@ -1,19 +1,29 @@
 # Otevře nejnovější trace.zip z ui-test-artifacts
-param()
+param(
+    [string]$TestName
+)
 
-# Info o aktivním venv
-if ($env:VIRTUAL_ENV -eq $null) {
-  Write-Host "Aktivuj venv: .\.venv\Scripts\Activate.ps1" -ForegroundColor Yellow
+if (-not $env:VIRTUAL_ENV) {
+    Write-Host "Aktivuj venv: .\.venv\Scripts\Activate.ps1" -ForegroundColor Yellow
 }
 
-$trace = Get-ChildItem ".\ui-test-artifacts" -Recurse -Filter trace.zip |
-          Sort-Object LastWriteTime -Descending |
-          Select-Object -First 1
+$traces = Get-ChildItem ".\ui-test-artifacts" -Recurse -Filter trace.zip -ErrorAction SilentlyContinue
 
-if (-not $trace) {
-  Write-Host "Žádný trace.zip nenalezen." -ForegroundColor Red
-  exit 1
+if (-not $traces -or $traces.Count -eq 0) {
+    Write-Host "Žádný trace.zip nenalezen." -ForegroundColor Red
+    exit 1
 }
 
-Write-Host "Otevírám: $($trace.FullName)" -ForegroundColor Cyan
+if ($TestName) {
+    $filtered = $traces | Where-Object { $_.Directory.Name -like "*$TestName*" }
+    if (-not $filtered -or $filtered.Count -eq 0) {
+        Write-Host "Žádný trace odpovídající '$TestName'." -ForegroundColor Red
+        exit 1
+    }
+    $trace = $filtered | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+} else {
+    $trace = $traces | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+}
+
+Write-Host "Otevírám trace: $($trace.FullName)" -ForegroundColor Cyan
 python -m playwright show-trace $trace.FullName
